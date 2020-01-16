@@ -44,8 +44,8 @@ class IntelQSVirtualDevice(cirq.Device):
         keep = keep or (isinstance(op.gate, cirq.ops.HPowGate) and
                         (op.gate.exponent == 1))
 
-        # keep = keep or (isinstance(op.gate, ops.CNotPowGate) and
-        #                 (op.gate.exponent == 1))
+        keep = keep or (isinstance(op.gate, cirq.ops.CNotPowGate) and
+                        (op.gate.exponent == 1))
         #
         # keep = keep or (isinstance(op.gate, ops.HPowGate) and
         #                 (op.gate.exponent == 1))

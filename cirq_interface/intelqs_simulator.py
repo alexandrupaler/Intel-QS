@@ -1,26 +1,31 @@
-from typing import Union, Sequence, List, Any
+from typing import Union, List, Any
 
 import numpy as np
 import cirq
 
-from cirq import study, schedules, ops, circuits, SimulatesFinalState
+from build.lib import intelqs_py as intelqs_simulator
 
-import sys
-sys.path.insert(0, '/home/alexandru/github/Intel-QS/build/lib')
-import intelqs_py as intelqs_simulator
+from cirq_interface import IntelQSVirtualDevice
 
-from intelqs_virtual_device import IntelQSVirtualDevice
-
-class IntelQSSimulator(SimulatesFinalState):
+class IntelQSSimulator(cirq.SimulatesFinalState):
 
     def __init__(self):
         return
 
+    def create_qubit_map(self, circuit):
+        the_map = {}
+        idx = 0
+        for qubit in sorted(circuit.all_qubits()):
+            the_map[qubit] = idx
+            idx += 1
+
+        return the_map
+
     def simulate_sweep(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            program: Union[cirq.circuits.Circuit, cirq.schedules.Schedule],
+            params: cirq.study.Sweepable,
+            qubit_order: cirq.ops.QubitOrderOrList = cirq.ops.QubitOrder.DEFAULT,
             initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
 
@@ -32,11 +37,9 @@ class IntelQSSimulator(SimulatesFinalState):
             raise ValueError('{!r} is not a IntelQSVirtualDevice'.format(
                 program.device))
 
-        param_resolvers = study.to_resolvers(params)
+        param_resolvers = cirq.study.to_resolvers(params)
 
-        qubit_map = {
-           cirq.NamedQubit('qubit') :0
-        }
+        qubit_map = self.create_qubit_map(program)
 
         trials_results = []
         for prs in param_resolvers:
@@ -49,8 +52,11 @@ class IntelQSSimulator(SimulatesFinalState):
             current_qreg = intelqs_simulator.QubitRegister(num_qubits, "base", 0, 0)
 
             for operation in solved_circuit.all_operations():
-                if (operation.gate == cirq.ops.H):
-                    current_qreg.ApplyHadamard(0)
+                if operation.gate == cirq.ops.H:
+                    current_qreg.ApplyHadamard(qubit_map[operation.qubits[0]])
+                elif operation.gate == cirq.ops.CNOT:
+                    current_qreg.ApplyCPauliX(qubit_map[operation.qubits[0]], qubit_map[operation.qubits[1]])
+
 
             ary = np.array([current_qreg[i] for i in range(current_qreg.GlobalSize())])
             current_res = cirq.WaveFunctionSimulatorState(
