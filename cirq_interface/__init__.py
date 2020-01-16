@@ -1,3 +1,2 @@
-from .intelqs_circuit import IntelQSCircuit
 from .intelqs_virtual_device import IntelQSVirtualDevice
 from .intelqs_simulator import IntelQSSimulator
