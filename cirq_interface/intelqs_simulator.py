@@ -42,6 +42,7 @@ class IntelQSSimulator(cirq.SimulatesFinalState):
         qubit_map = self.create_qubit_map(program)
 
         trials_results = []
+
         for prs in param_resolvers:
 
             from cirq import protocols
@@ -52,10 +53,18 @@ class IntelQSSimulator(cirq.SimulatesFinalState):
             current_qreg = intelqs_simulator.QubitRegister(num_qubits, "base", 0, 0)
 
             for operation in solved_circuit.all_operations():
+
                 if operation.gate == cirq.ops.H:
                     current_qreg.ApplyHadamard(qubit_map[operation.qubits[0]])
+
                 elif operation.gate == cirq.ops.CNOT:
-                    current_qreg.ApplyCPauliX(qubit_map[operation.qubits[0]], qubit_map[operation.qubits[1]])
+                    current_qreg.ApplyCPauliX(qubit_map[operation.qubits[0]],
+                                              qubit_map[operation.qubits[1]])
+
+                elif isinstance(operation.gate, cirq.ops.XPowGate):
+                    # TODO: Handle with care! Are theta angles? global phases?
+                    current_qreg.ApplyRotationX(qubit_map[operation.qubits[0]],
+                                                operation.gate.exponent * np.pi)
 
 
             ary = np.array([current_qreg[i] for i in range(current_qreg.GlobalSize())])

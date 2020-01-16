@@ -20,7 +20,9 @@ def main():
 
     circuit.append(cirq.ops.H.on(qubit0))
     circuit.append(cirq.ops.CNOT.on(qubit0, qubit1))
+    circuit.append(cirq.ops.XPowGate(exponent=0.5).on(qubit1))
 
+    print(circuit)
 
     res = IntelQSSimulator().simulate(circuit)
 
