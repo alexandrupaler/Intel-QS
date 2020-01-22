@@ -47,27 +47,12 @@ class IntelQSVirtualDevice(cirq.Device):
         keep = keep or (isinstance(op.gate, cirq.ops.CNotPowGate) and
                         (op.gate.exponent == 1))
 
-        keep = keep or (isinstance(op.gate, cirq.ops.XPowGate))
-        #
-        # keep = keep or (isinstance(op.gate, ops.HPowGate) and
-        #                 (op.gate.exponent == 1))
-        #
-        # keep = keep or (isinstance(op.gate, ops.XPowGate) and
-        #                 (op.gate.exponent == 0.5))
-        #
-        # keep = keep or (isinstance(op.gate, ops.YPowGate) and
-        #                 (op.gate.exponent == 0.5))
-        #
-        # keep = keep or (isinstance(op.gate, ops.ZPowGate) and
-        #                 (op.gate.exponent == 0.25))
-        #
-        # keep = keep or (isinstance(op.gate, ops.ZPowGate))
-        #
-        # keep = keep or (isinstance(op.gate, ops.PhasedXPowGate) and
-        #                 (op.gate.exponent == 0.5) and
-        #                 (op.gate.phase_exponent == 0.25))
-        #
-        # keep = keep or (isinstance(op.gate, cirq.ops.FSimGate))
+        keep = keep or (isinstance(op.gate, cirq.ops.XPowGate) and
+                        (op.gate.global_shift == -0.5))
+
+        # TODO: this should that single qubit gates are accepted if
+        # they implement the unitary protocol
+        keep = keep or (isinstance(op.gate, cirq.ops.SingleQubitGate))
 
         return keep
 

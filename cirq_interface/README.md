@@ -11,3 +11,5 @@ Step 2: In the conda environment required for the compilation of IntelQS run
 `pip install cirq`
 
 Step 3: An example of how to use the Intel simulator see `main_test.py`.
+
+Step 4: Experimental CPP `python main_test.py > ../examples/google_cirq.cpp`

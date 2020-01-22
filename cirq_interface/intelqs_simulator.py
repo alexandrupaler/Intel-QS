@@ -52,20 +52,39 @@ class IntelQSSimulator(cirq.SimulatesFinalState):
 
             current_qreg = intelqs_simulator.QubitRegister(num_qubits, "base", 0, 0)
 
-            for operation in solved_circuit.all_operations():
 
-                if operation.gate == cirq.ops.H:
-                    current_qreg.ApplyHadamard(qubit_map[operation.qubits[0]])
+            for moment in solved_circuit:
+                for operation in moment:
 
-                elif operation.gate == cirq.ops.CNOT:
-                    current_qreg.ApplyCPauliX(qubit_map[operation.qubits[0]],
-                                              qubit_map[operation.qubits[1]])
+                    """
+                        Check if the gates are known single qubit gates
+                        If that is not the case then check 
+                        if it is a SingleQubitGate and obtain its unitary matrix
+                        that is passed to the simulator
+                    """
+                    if operation.gate == cirq.ops.H:
+                        current_qreg.ApplyHadamard(qubit_map[operation.qubits[0]])
 
-                elif isinstance(operation.gate, cirq.ops.XPowGate):
-                    # TODO: Handle with care! Are theta angles? global phases?
-                    current_qreg.ApplyRotationX(qubit_map[operation.qubits[0]],
-                                                operation.gate.exponent * np.pi)
+                    #
+                    elif isinstance(operation.gate, cirq.ops.XPowGate):
+                        #
+                        # Rx, Rz, Ry are not classes but methods to create XPowGates
+                        # with global_shift = -0.5
+                        #
+                        print("apply rotation x")
+                        current_qreg.ApplyRotationX(qubit_map[operation.qubits[0]],
+                                                    operation.gate.exponent * np.pi)
 
+                    elif isinstance(operation.gate, cirq.ops.SingleQubitGate):
+                        matrix = cirq.unitary(operation)
+                        print(operation, matrix)
+
+                        current_qreg.Apply1QubitGate(qubit_map[operation.qubits[0]],
+                                                     matrix)
+
+                    elif operation.gate == cirq.ops.CNOT:
+                        current_qreg.ApplyCPauliX(qubit_map[operation.qubits[0]],
+                                                  qubit_map[operation.qubits[1]])
 
             ary = np.array([current_qreg[i] for i in range(current_qreg.GlobalSize())])
             current_res = cirq.WaveFunctionSimulatorState(

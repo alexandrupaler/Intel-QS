@@ -337,6 +337,9 @@ if(BuildExamples)
     add_executable(benchgates.exe examples/benchgates.cpp)
     target_link_libraries(benchgates.exe intel_qs)
 
+    add_executable(google_cirq.exe examples/google_cirq.cpp)
+    target_link_libraries(google_cirq.exe intel_qs)
+
     add_executable(get_started_with_IQS.exe examples/get_started_with_IQS.cpp)
     target_link_libraries(get_started_with_IQS.exe intel_qs)
 
