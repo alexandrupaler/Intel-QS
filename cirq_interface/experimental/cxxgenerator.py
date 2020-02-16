@@ -1,4 +1,5 @@
 import cirq
+import numpy
 
 class CXXGenerator():
 
@@ -13,9 +14,9 @@ class CXXGenerator():
         self.conclusion_code()
 
     def introduction_code(self, circuit):
-        print("#include \"../qureg/qureg.hpp\"")
-
         print("""
+#include \"../qureg/qureg.hpp\"
+
 int main(int argc, char **argv)
 {
 #ifndef INTELQS_HAS_MPI
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
 """)
         print("""
     int num_qubits = {};""".format(len(circuit.all_qubits())))
+
         print("""
     std::size_t index = 0;
     QubitRegister<ComplexDP> psi (num_qubits, \"base\", index);
@@ -68,9 +70,18 @@ int main(int argc, char **argv)
 
         qubit_map = self.create_qubit_map(circuit)
 
+        sqrt_X = cirq.ops.pauli_gates.X ** (1 / 2)
+        sqrt_Y = cirq.ops.pauli_gates.Y ** (1 / 2)
+
         for operation in circuit.all_operations():
 
             """
+                The circuit includes only the following gates
+                    non-diagonal gates - sqrt(X), sqrt(Y)
+                    Hadamard
+                    CZ
+                    T
+                *********
                 Check if the gates are known single qubit gates
                 If that is not the case then check 
                 if it is a SingleQubitGate and obtain its unitary matrix
@@ -81,6 +92,34 @@ int main(int argc, char **argv)
     //Apply the Hadamard gate
     psi.ApplyHadamard({});""".format(qubit_map[operation.qubits[0]])
                       )
+            elif operation.gate == cirq.ops.T:
+                print("""
+    //Apply the T gate
+    psi.ApplyRotationZ({}, {});""".format(
+                    qubit_map[operation.qubits[0]],
+                    operation.gate.exponent * numpy.pi
+                    ))
+            elif operation.gate == sqrt_X:
+                print("""
+    //Apply the SQRT_X gate
+    psi.ApplyRotationX({}, {});""".format(
+                    qubit_map[operation.qubits[0]],
+                    operation.gate.exponent * numpy.pi
+                    ))
+            elif operation.gate == sqrt_Y:
+                print("""
+    //Apply the  SQRT_Y gate
+    psi.ApplyRotationY({}, {});""".format(
+                    qubit_map[operation.qubits[0]],
+                    operation.gate.exponent * numpy.pi
+                    ))
+            elif operation.gate == cirq.ops.CZ:
+                print("""
+    //Apply the CZ gate
+    psi.ApplyCPauliZ({}, {});""".format(qubit_map[operation.qubits[0]],
+                                        qubit_map[operation.qubits[1]]))
+            else:
+                print("_CXX_NO_CLUE_")
 
             # #
             # elif isinstance(operation.gate, cirq.ops.XPowGate):

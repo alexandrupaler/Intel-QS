@@ -1,14 +1,14 @@
 import sys, os
 
-import numpy as np
-
 sys.path.insert(
     0, os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../'))
 
-import cirq
+# import cirq
+#
+# from cirq_interface import IntelQSVirtualDevice
+# from cirq_interface import IntelQSSimulator
 
-from cirq_interface import IntelQSVirtualDevice
-from cirq_interface import IntelQSSimulator
+import cirq.experiments as experiments
 
 from cirq_interface.experimental import CXXGenerator
 
@@ -16,23 +16,18 @@ def main():
 
     # print("Hello World! Intel QS")
 
-    qubit0 = cirq.NamedQubit("qubit0")
-    qubit1 = cirq.NamedQubit("qubit1")
+    supreme_circuit = experiments.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
+        # Do not exagerate with this parameter
+        n_rows = 3,
+        # Do not exagerate with this parameter
+        cz_depth = 10,
+        # Should be properly seeded
+        seed = 0
+    )
 
-    circuit = cirq.Circuit(device=IntelQSVirtualDevice())
+    # print(supreme_circuit)
 
-    circuit.append(cirq.ops.H.on(qubit0))
-    # circuit.append(cirq.ops.CNOT.on(qubit0, qubit1))
-    # circuit.append(cirq.ops.Rx(np.pi * 0.5).on(qubit1))
-    circuit.append(cirq.ops.Rz(np.pi * 0.5).on(qubit0))
-
-    # print(circuit)
-
-    # res = IntelQSSimulator().simulate(circuit)
-
-    CXXGenerator(circuit)
-
-    # print("Res", res)
+    CXXGenerator(supreme_circuit)
 
 if __name__ == "__main__":
     main()
